@@ -1,0 +1,23 @@
+[project]
+name = "faker-to-snowflake-project"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "jeff skoldberg", email = "jeff@gmdata.co"},
+]
+dependencies = [
+    "snowflake-connector-python>=3.10.1",
+    "faker>=25.5.0",
+    "pandas>=2.2.2",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
