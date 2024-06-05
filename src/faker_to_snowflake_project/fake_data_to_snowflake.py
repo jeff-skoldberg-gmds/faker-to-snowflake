@@ -6,30 +6,9 @@ import uuid
 import random
 from datetime import datetime, timedelta
 from snowflake.connector import connect
-import dotenv
 import logging
 
-
-# log format: timestamp | module name | log level - message
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(module)s | %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
-
-
-
-
-def set_env_vars():
-    """
-    Set environment variables from a .env file if it exists.
-
-    Returns:
-        None
-    """
-    try:
-        dotenv.load_dotenv()
-    except Exception as e:
-        logger.error(
-            f"Could not load .env file. Continuing with existing environment variables. Error: {e}"
-        )
 
 
 def generate_data(number_of_rows: int) -> pd.DataFrame:
@@ -98,10 +77,6 @@ def main(number_of_rows: int = 1000) -> None:
     Args:
         number_of_rows (int): The number of rows to generate in the fake data.
     """
-    set_env_vars()
     df = generate_data(number_of_rows)
     upload_to_snowflake(df)
 
-
-if __name__ == "__main__":
-    main()

@@ -9,6 +9,7 @@ dependencies = [
     "faker>=25.5.0",
     "snowflake-connector-python[pandas]>=3.10.1",
     "python-dotenv>=1.0.1",
+    "boto3>=1.34.119",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
