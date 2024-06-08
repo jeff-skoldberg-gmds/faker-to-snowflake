@@ -16,7 +16,7 @@ class SecretsManager:
         else:
             self.session = boto3.Session()  # relies on environment credentials or IAM roles
             logger.info("Using environment credentials or IAM role")
-        self.client = self.session.client('secretsmanager')
+        self.client = self.session.client('secretsmanager','us-east-2')
         self.set_env_vars()
 
     def set_env_vars(self):
