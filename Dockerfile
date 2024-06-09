@@ -1,5 +1,5 @@
-# Use an official Python 3.11 runtime as a parent image
-FROM python:3.11-slim
+# Lambda Parent Image
+FROM public.ecr.aws/lambda/python:3.11
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
@@ -9,13 +9,10 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the specific project directory
-COPY src/faker_to_snowflake_project ./faker_to_snowflake_project
+COPY src/faker_to_snowflake_project/ ${LAMBDA_TASK_ROOT}
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
-# Define environment variable
-ENV NAME World
-
 # Run generator.py when the container launches
-CMD ["python", "./faker_to_snowflake_project/generator.py"]
+CMD ["app.lambda_handler"]

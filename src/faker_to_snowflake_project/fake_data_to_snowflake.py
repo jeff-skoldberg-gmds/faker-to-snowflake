@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from snowflake.connector import connect
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("faker_lambda_logger")
 
 
 def generate_data(number_of_rows: int) -> pd.DataFrame:

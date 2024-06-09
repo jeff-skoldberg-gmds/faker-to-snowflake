@@ -4,19 +4,16 @@ import json
 import logging
 import dotenv
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("faker_lambda_logger")
 
 class SecretsManager:
-    def __init__(self, secret_name, region, profile_name='default'):
+    def __init__(self, secret_name, region):
+        logger.info(f"Initializing SecretsManager object for secret: {secret_name}")
         self.secret_name = secret_name
         self.region = region
-        # Use profile if provided, otherwise default to environment credentials
-        if profile_name:
-            self.session = boto3.Session(profile_name=profile_name)
-            logger.info(f"Using AWS profile: {profile_name}")
-        else:
-            self.session = boto3.Session()  # relies on environment credentials or IAM roles
-            logger.info("Using environment credentials or IAM role")
+
+        
+        self.session = boto3.Session()  # relies on environment credentials or IAM roles
         self.client = self.session.client('secretsmanager',region)
         self.set_env_vars()
 
