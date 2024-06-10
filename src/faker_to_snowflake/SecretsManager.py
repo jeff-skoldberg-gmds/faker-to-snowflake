@@ -1,23 +1,20 @@
 import boto3
 import os
 import json
-import logging
 import dotenv
 
-logger = logging.getLogger("faker_lambda_logger")
+from logging_config import logger
 
 class SecretsManager:
     def __init__(self, secret_name, region):
         logger.info(f"Initializing SecretsManager object for secret: {secret_name}")
         self.secret_name = secret_name
         self.region = region
-
-        
-        self.session = boto3.Session()  # relies on environment credentials or IAM roles
+        self.session = boto3.Session()
         self.client = self.session.client('secretsmanager',region)
-        self.set_env_vars()
 
-    def set_env_vars(self):
+
+    def set_env_vars(self) -> None:
         """
         Set environment variables from a .env file if it exists.
         This matters locally when creating the secret.
@@ -33,8 +30,17 @@ class SecretsManager:
                 f"Could not load .env file. Continuing with existing environment variables. Error: {e}"
             )    
     
-    def create_or_update_secret(self):
-        """Create or update a secret in AWS Secrets Manager from existing environment variables."""
+    def create_or_update_secret(self) -> dict:
+        """
+        Create or update a secret in AWS Secrets Manager from existing environment variables.
+
+        Args:
+            None
+
+        Returns:
+            response: The response from creating or updating the secret.
+        """
+        self.set_env_vars()
         logger.info(f"Creating or updating secret: {self.secret_name}")
         secret_data = {
             "SNOWFLAKE_USER": os.getenv("SNOWFLAKE_USER"),
@@ -68,8 +74,14 @@ class SecretsManager:
 
         return response
 
-    def get_secret(self):
-        """Retrieve and set environment variables from a secret in AWS Secrets Manager."""
+    def get_secret(self) -> None:
+        """
+        This method fetches a secret from AWS Secrets Manager using the provided secret name.
+        It then sets the retrieved secret values as environment variables.
+
+        Returns:
+            None
+        """
         # Fetch the secret
         logger.info(f"Retrieving secret: {self.secret_name}")
         response = self.client.get_secret_value(SecretId=self.secret_name)
@@ -81,5 +93,7 @@ class SecretsManager:
 
 
 if __name__ == "__main__":
-    secret_manager = SecretsManager(secret_name="gmdata_snowflake", region="us-east-1")
+    # This should be run directly to initialize the project / set the secrets
+    from config import secret_name, region
+    secret_manager = SecretsManager(secret_name=secret_name, region=region)
     secret_manager.create_or_update_secret()

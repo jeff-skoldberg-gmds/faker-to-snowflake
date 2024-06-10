@@ -1,5 +1,6 @@
 # Lambda Parent Image
-FROM public.ecr.aws/lambda/python:3.11
+FROM public.ecr.aws/lambda/python:3.11-arm64
+
 
 # Set the working directory in the container
 WORKDIR /usr/src/app

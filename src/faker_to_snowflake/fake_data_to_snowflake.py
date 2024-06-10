@@ -6,9 +6,7 @@ import uuid
 import random
 from datetime import datetime, timedelta
 from snowflake.connector import connect
-import logging
-
-logger = logging.getLogger("faker_lambda_logger")
+from logging_config import logger
 
 
 def generate_data(number_of_rows: int) -> pd.DataFrame:
@@ -34,15 +32,15 @@ def generate_data(number_of_rows: int) -> pd.DataFrame:
         "extracted_at_utc": [now for _ in range(number_of_rows)],
         "sales_order_id": [
             str(uuid.uuid4()) for _ in range(number_of_rows)
-        ],  # Using UUID4 for unique identifiers
+        ], 
     }
-    # make sales_order_id the left most column
+
     df = pd.DataFrame(data)
     logger.info(f"Generated {number_of_rows} rows of fake data")
     return df
 
 
-def upload_to_snowflake(df):
+def upload_to_snowflake(df: pd.DataFrame) -> None:
     """
     Uploads the given DataFrame to Snowflake.
 
@@ -81,4 +79,4 @@ def main(number_of_rows: int = 1000) -> None:
     upload_to_snowflake(df)
 
 if __name__ == "__main__":
-    main()
+    main(number_of_rows=1000)
