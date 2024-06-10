@@ -19,5 +19,5 @@ def lambda_handler(event, context):
     logger.info("Lambda handler finished")
     return {
     'statusCode': 200,
-    "body": "Records loaded to Snowflake"
+    "body": f"{rows} Records loaded to Snowflake"
     }
