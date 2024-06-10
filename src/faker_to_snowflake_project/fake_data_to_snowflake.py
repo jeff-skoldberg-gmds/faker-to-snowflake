@@ -80,3 +80,5 @@ def main(number_of_rows: int = 1000) -> None:
     df = generate_data(number_of_rows)
     upload_to_snowflake(df)
 
+if __name__ == "__main__":
+    main()

@@ -33,9 +33,9 @@ class SecretsManager:
                 f"Could not load .env file. Continuing with existing environment variables. Error: {e}"
             )    
     
-    def create_secret(self):
-        """Create a secret in AWS Secrets Manager from existing environment variables."""
-        logger.info(f"Creating secret: {self.secret_name}")
+    def create_or_update_secret(self):
+        """Create or update a secret in AWS Secrets Manager from existing environment variables."""
+        logger.info(f"Creating or updating secret: {self.secret_name}")
         secret_data = {
             "SNOWFLAKE_USER": os.getenv("SNOWFLAKE_USER"),
             "SNOWFLAKE_PASSWORD": os.getenv("SNOWFLAKE_PASSWORD"),
@@ -47,13 +47,25 @@ class SecretsManager:
         }
         # Convert dictionary to JSON string
         secret_string = json.dumps(secret_data)
-        # Create a secret
-        response = self.client.create_secret(
-            Name=self.secret_name,
-            Description='Snowflake credentials and configuration',
-            SecretString=secret_string
-        )
-        logger.info(f"Created secret: {self.secret_name}")
+
+        try:
+            # Check if the secret exists
+            self.client.describe_secret(SecretId=self.secret_name)
+            # If it exists, update the secret
+            response = self.client.update_secret(
+                SecretId=self.secret_name,
+                SecretString=secret_string
+            )
+            logger.info(f"Updated secret: {self.secret_name}")
+        except self.client.exceptions.ResourceNotFoundException:
+            # If it doesn't exist, create the secret
+            response = self.client.create_secret(
+                Name=self.secret_name,
+                Description='Snowflake credentials and configuration',
+                SecretString=secret_string
+            )
+            logger.info(f"Created secret: {self.secret_name}")
+
         return response
 
     def get_secret(self):
@@ -68,3 +80,6 @@ class SecretsManager:
         logger.info(f"Retrieved secret: {self.secret_name}")
 
 
+if __name__ == "__main__":
+    secret_manager = SecretsManager(secret_name="gmdata_snowflake", region="us-east-1")
+    secret_manager.create_or_update_secret()

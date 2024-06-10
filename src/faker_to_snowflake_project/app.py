@@ -16,7 +16,6 @@ logger.addHandler(handler)
 
 logger.info("Beginning app.py")
 
-import os
 from SecretsManager import SecretsManager
 from config import secret_name, region, profile_name
 from fake_data_to_snowflake import main
