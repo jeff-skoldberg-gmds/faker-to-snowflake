@@ -2,7 +2,7 @@ import boto3
 import os
 import json
 import dotenv
-
+import pathlib
 from logging_config import logger
 
 
@@ -41,6 +41,8 @@ class SecretsManager:
             response: The response from creating or updating the secret.
         """
         self.set_env_vars()
+        with open(pathlib.Path.cwd() / 'rsa_key.p8', 'r') as file:
+            rsa_key = file.read()
         logger.info(f"Creating or updating secret: {self.secret_name}")
         secret_data = {
             "SNOWFLAKE_USER": os.getenv("SNOWFLAKE_USER"),
@@ -50,6 +52,7 @@ class SecretsManager:
             "SNOWFLAKE_DATABASE": os.getenv("SNOWFLAKE_DATABASE"),
             "SNOWFLAKE_SCHEMA": os.getenv("SNOWFLAKE_SCHEMA"),
             "SNOWFLAKE_ROLE": os.getenv("SNOWFLAKE_ROLE"),
+            'rsa_key': rsa_key
         }
         # Convert dictionary to JSON string
         secret_string = json.dumps(secret_data)

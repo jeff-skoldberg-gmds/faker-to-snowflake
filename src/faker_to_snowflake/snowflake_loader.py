@@ -23,6 +23,7 @@ class SnowflakeDataLoader:
         account: str,
         role: str,
         table: str,
+        rsa_key: str,
     ):
         self.df = df
         self.database = database
@@ -32,12 +33,13 @@ class SnowflakeDataLoader:
         self.account = account
         self.role = role
         self.table = table
+        self.rsa_key = rsa_key
         self.jwt_token = self.generate_jwt_token()
+        
 
     def generate_jwt_token(self):
         logger.info("Generating JWT token")
-        private_key_path = "rsa_key.p8"
-        jwt_generator = JWTGenerator(self.account, self.user, private_key_path)
+        jwt_generator = JWTGenerator(self.account, self.user, self.rsa_key)
         jwt_token = jwt_generator.get_token()
         if not jwt_token:
             raise ValueError(
@@ -117,9 +119,17 @@ class SnowflakeDataLoader:
             conn.close()
 
     def load_using_snowpipe(self):
+        '''
+        Step 1: clean up old files in the stage
+          unfortunately, we cannot do this as the last step because it is possible to delete a file before snowpipe processes it
+          I do not want to add "wait" or checking logic.
+        Step 2: upload the dataframe to the stage
+        Step 3: trigger the snowpipe
+        '''
+        self.clean_table_stage()
         file_name = self.upload_dataframe_to_stage()
         self.trigger_snowpipe(file_name)
-        self.clean_table_stage()
+        
 
     def load_using_write_pandas(self, warehouse: str) -> None:
         """
