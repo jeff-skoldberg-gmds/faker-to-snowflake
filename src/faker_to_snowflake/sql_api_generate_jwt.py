@@ -53,7 +53,8 @@ class JWTGenerator(object):
         self,
         account: Text,
         user: Text,
-        private_key_file_path: Text,
+        # private_key_file_path: Text, #
+        private_key: Text,
         lifetime: timedelta = LIFETIME,
         renewal_delay: timedelta = RENEWAL_DELTA,
     ):
@@ -78,23 +79,34 @@ class JWTGenerator(object):
 
         self.lifetime = lifetime
         self.renewal_delay = renewal_delay
-        self.private_key_file_path = private_key_file_path
+        # self.private_key_file_path = private_key_file_path
         self.renew_time = datetime.now(timezone.utc)
         self.token = None
 
-        # Load the private key from the specified file.
-        with open(self.private_key_file_path, "rb") as pem_in:
-            pemlines = pem_in.read()
-            try:
-                # Try to access the private key without a passphrase.
-                self.private_key = load_pem_private_key(
-                    pemlines, None, default_backend()
-                )
-            except TypeError:
-                # If that fails, provide the passphrase returned from get_private_key_passphrase().
-                self.private_key = load_pem_private_key(
-                    pemlines, get_private_key_passphrase().encode(), default_backend()
-                )
+        # # Load the private key from the specified file.
+        # with open(self.private_key_file_path, "rb") as pem_in:
+        #     pemlines = pem_in.read()
+        #     try:
+        #         # Try to access the private key without a passphrase.
+        #         self.private_key = load_pem_private_key(
+        #             pemlines, None, default_backend()
+        #         )
+        #     except TypeError:
+        #         # If that fails, provide the passphrase returned from get_private_key_passphrase().
+        #         self.private_key = load_pem_private_key(
+        #             pemlines, get_private_key_passphrase().encode(), default_backend()
+        #         )
+        try:
+            # If the private key is not encrypted, provide None for the password.
+            self.private_key = load_pem_private_key(
+                private_key.encode(), None, default_backend()
+            )
+        except TypeError:
+            # If that fails, provide the passphrase returned from get_private_key_passphrase().
+            self.private_key = load_pem_private_key(
+                private_key.encode(), get_private_key_passphrase().encode(), default_backend()
+            )
+
 
     def prepare_account_name_for_jwt(self, raw_account: Text) -> Text:
         """
