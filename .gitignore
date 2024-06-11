@@ -1,5 +1,5 @@
 .vscode/
-src/deployment_steps
+src/aws_formation/ignore
 response.json
 rsa_key.*
 
