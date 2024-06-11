@@ -12,7 +12,7 @@ from snowflake.connector import connect
 from snowflake.connector.pandas_tools import write_pandas
 
 
-class SnowpipeLoader:
+class SnowflakeDataLoader:
     def __init__(
         self,
         df: pd.DataFrame,
@@ -116,40 +116,12 @@ class SnowpipeLoader:
             cursor.close()
             conn.close()
 
-    def load_data(self):
+    def load_using_snowpipe(self):
         file_name = self.upload_dataframe_to_stage()
         self.trigger_snowpipe(file_name)
         self.clean_table_stage()
 
-
-class SnowflakeDfLoader:
-    '''
-    The more costly way to upload data.
-    Uses at least 1 minute of compute, since it uses a virtual warehouse.
-    '''
-    def __init__(
-        self,
-        user: str,
-        password: str,
-        account: str,
-        warehouse: str,
-        database: str,
-        schema: str,
-        role: str,
-        table: str,
-        df: pd.DataFrame,
-    ):
-        self.user = user
-        self.password = password
-        self.account = account
-        self.warehouse = warehouse
-        self.database = database
-        self.schema = schema
-        self.role = role
-        self.df = df
-        self.table = table
-
-    def upload_to_snowflake(self) -> None:
+    def load_using_write_pandas(self, warehouse: str) -> None:
         """
         Uploads the given DataFrame to Snowflake.
         This is an extremely simple way to load data so Snowflake, but it can be expensive if you run it frequently.
@@ -170,7 +142,7 @@ class SnowflakeDfLoader:
             user=self.user,
             password=self.password,
             account=self.account,
-            warehouse=self.warehouse,
+            warehouse=warehouse,
             database=self.database,
             schema=self.schema,
             role=self.role,
@@ -180,10 +152,4 @@ class SnowflakeDfLoader:
             conn, self.df, "fake_sales_orders", auto_create_table=True, quote_identifiers=False
         )
         conn.close()
-        logger.info("write_pandas complete.")
-
-
-# # Example usage
-# df = pd.DataFrame({'column1': [1, 2, 3], 'column2': ['a', 'b', 'c']})
-# loader = SnowflakeLoader(df, "your_database", "your_schema", "your_table")
-# loader.load_data()
+        logger.info("write_pandas complete.")        
