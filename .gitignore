@@ -1,6 +1,7 @@
 .vscode/
 src/deployment_steps
 response.json
+rsa_key.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
