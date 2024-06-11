@@ -1,23 +1,31 @@
+import importlib
 from logging_config import logger
 
 logger.info("Beginning app.py")
 
 from SecretsManager import SecretsManager
-from config import secret_name, region
+import config
 from fake_data_to_snowflake import main
 
-# Initialize the SecretsManager object
-secret_manager = SecretsManager(secret_name=secret_name, region=region)
+# Initialize the SecretsManager object and set the environment variables
+secret_manager = SecretsManager(secret_name=config.secret_name, region=config.region)
+secret_manager.get_secret() # sets variables
+#after the env vars are set, to re-import the config.
+importlib.reload(config)
+# todo: ^ make config a class that handles this.
 
-# set system environment variables from Secrets Manager
-secret_manager.get_secret()
 
 def lambda_handler(event, context):
     logger.info("Lambda handler started")
     rows = event.get("rows", 2000)
-    main(rows)
+    main(rows,
+        user=config.user,
+        password=config.password,
+        account=config.account,
+        warehouse=config.warehouse,
+        database=config.database,
+        schema=config.schema,
+        role=config.role,
+        rsa_key=config.rsa_key)
     logger.info("Lambda handler finished")
-    return {
-    'statusCode': 200,
-    "body": f"{rows} Records loaded to Snowflake"
-    }
+    return {"statusCode": 200, "body": f"{rows} Records loaded to Snowflake"}
