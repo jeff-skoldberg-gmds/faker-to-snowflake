@@ -4,13 +4,12 @@ import logging
 logger = logging.getLogger("faker_lambda_logger")
 logger.setLevel(logging.INFO)
 
-# Create a console handler with a specific log level
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-
-# Create a formatter and add it to the handler
-formatter = logging.Formatter("%(asctime)s | %(module)s | %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-
-# Add the handler to the logger
-logger.addHandler(handler)
+# Check if the logger already has handlers, if not, add a new StreamHandler
+if not logger.handlers:
+    #in AWS, they have their own logger.
+    #This logger is used locally.
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s | %(module)s | %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
