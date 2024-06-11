@@ -6,15 +6,6 @@ import random
 from datetime import datetime, timedelta
 from logging_config import logger
 from snowflake_loader import SnowflakeDataLoader
-from config import (
-    user,
-    password,
-    account,
-    warehouse,
-    database,
-    schema,
-    role,
-)
 
 
 def generate_data(number_of_rows: int) -> pd.DataFrame:
@@ -48,16 +39,20 @@ def generate_data(number_of_rows: int) -> pd.DataFrame:
     logger.info(f"Generated {number_of_rows} rows of fake data")
     return df
 
-def data_to_snowflake(df: pd.DataFrame,
-    database: str = database,
-    schema: str = schema,
-    user: str = user,
-    password: str = password,
-    account: str = account,
-    role: str = role,
-    warehouse: str = warehouse,
-    table: str = "fake_sales_orders") -> None:
-    '''
+
+def data_to_snowflake(
+    df: pd.DataFrame,
+    database: str,
+    schema: str,
+    user: str,
+    password: str,
+    account: str,
+    role: str,
+    warehouse: str,
+    rsa_key: str,
+    table: str = "fake_sales_orders",
+) -> None:
+    """
     Load data from a pandas DataFrame to Snowflake using SnowpipeLoader or SnowflakeDfLoader.
 
     Args:
@@ -83,7 +78,7 @@ def data_to_snowflake(df: pd.DataFrame,
         The function does not check if the table exists because the purpose is to avoid using a warehouse.
         TODO: Instead of the current try-except block, use the "show tables" command to check if the table exists.
 
-    '''
+    """
     loader = SnowflakeDataLoader(
         df,
         database=database,
@@ -93,6 +88,7 @@ def data_to_snowflake(df: pd.DataFrame,
         account=account,
         role=role,
         table=table,
+        rsa_key=rsa_key
     )
     try:
         loader.load_using_snowpipe()
@@ -104,7 +100,17 @@ def data_to_snowflake(df: pd.DataFrame,
             logger.error(f"Error: {e}")
 
 
-def main(number_of_rows: int = 1000) -> None:
+def main(
+    number_of_rows: int,
+    database: str,
+    schema: str,
+    user: str,
+    password: str,
+    account: str,
+    role: str,
+    warehouse: str,
+    rsa_key: str
+) -> None:
     """
     Entry point of the script.
 
@@ -113,22 +119,55 @@ def main(number_of_rows: int = 1000) -> None:
     """
     df = generate_data(number_of_rows)
     # upload_to_snowflake(df)
-    
+
     try:
-        data_to_snowflake(df,
-                        database=database,
-                        schema=schema,
-                        user=user,
-                        password=password,
-                        account=account,
-                        role=role,
-                        warehouse=warehouse,
-                        table="fake_sales_orders",)
+        data_to_snowflake(
+            df,
+            database=database,
+            schema=schema,
+            user=user,
+            password=password,
+            account=account,
+            role=role,
+            warehouse=warehouse,
+            table="fake_sales_orders",
+            rsa_key=rsa_key
+        )
         logger.info("Process complete")
     except Exception as e:
         logger.error(f"Error: {e}")
         logger.error("Process failed")
+        raise e
 
 
 if __name__ == "__main__":
-    main(number_of_rows=10000)
+    # for testing locally
+    from config import (
+        user,
+        password,
+        account,
+        warehouse,
+        database,
+        schema,
+        role,
+        region,
+        secret_name
+
+    )
+    from SecretsManager import SecretsManager
+
+    secrets_manager = SecretsManager(secret_name=secret_name, region=region)
+    secret = secrets_manager.get_secret()
+    rsa_key = os.getenv('rsa_key')
+
+    main(
+        number_of_rows=1000,
+        user=user,
+        password=password,
+        account=account,
+        warehouse=warehouse,
+        database=database,
+        schema=schema,
+        role=role,
+        rsa_key=rsa_key
+    )
