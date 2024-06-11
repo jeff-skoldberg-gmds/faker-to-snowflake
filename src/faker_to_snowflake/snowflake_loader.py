@@ -8,6 +8,8 @@ import json
 import tempfile
 from sql_api_generate_jwt import JWTGenerator
 from logging_config import logger
+from snowflake.connector import connect
+from snowflake.connector.pandas_tools import write_pandas
 
 
 class SnowpipeLoader:
@@ -93,6 +95,7 @@ class SnowpipeLoader:
             logger.info(
                 f"Failed to trigger Snowpipe. Status code: {response.status_code}, Response: {response.text}"
             )
+            raise ValueError("Failed to trigger Snowpipe.")
 
     def clean_table_stage(self):
         stage_name = f"%{self.table}"
@@ -117,6 +120,67 @@ class SnowpipeLoader:
         file_name = self.upload_dataframe_to_stage()
         self.trigger_snowpipe(file_name)
         self.clean_table_stage()
+
+
+class SnowflakeDfLoader:
+    '''
+    The more costly way to upload data.
+    Uses at least 1 minute of compute, since it uses a virtual warehouse.
+    '''
+    def __init__(
+        self,
+        user: str,
+        password: str,
+        account: str,
+        warehouse: str,
+        database: str,
+        schema: str,
+        role: str,
+        table: str,
+        df: pd.DataFrame,
+    ):
+        self.user = user
+        self.password = password
+        self.account = account
+        self.warehouse = warehouse
+        self.database = database
+        self.schema = schema
+        self.role = role
+        self.df = df
+        self.table = table
+
+    def upload_to_snowflake(self) -> None:
+        """
+        Uploads the given DataFrame to Snowflake.
+        This is an extremely simple way to load data so Snowflake, but it can be expensive if you run it frequently.
+        The copy command utilizes a virtual warehouse, so you pay for a full minute of usage.
+        Also, it is the easiest way to create the table on the fly.
+        In our scenario, if the table does not exist (snowpipe fails), we run this one.
+
+        Args:
+            df (pandas.DataFrame): The DataFrame to be uploaded.
+
+        Returns:
+            None
+        """
+        # Load the environment variables from dotenv file if it exists
+        logger.info("Uploading DateFrame to Snowflake using write_pandas")
+
+        conn = connect(
+            user=self.user,
+            password=self.password,
+            account=self.account,
+            warehouse=self.warehouse,
+            database=self.database,
+            schema=self.schema,
+            role=self.role,
+        )
+        # Use the write_pandas method for efficient data upload
+        write_pandas(
+            conn, self.df, "fake_sales_orders", auto_create_table=True, quote_identifiers=False
+        )
+        conn.close()
+        logger.info("write_pandas complete.")
 
 
 # # Example usage

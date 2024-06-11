@@ -1,13 +1,11 @@
 import os
 from faker import Faker
 import pandas as pd
-from snowflake.connector.pandas_tools import write_pandas
 import uuid
 import random
 from datetime import datetime, timedelta
-from snowflake.connector import connect
 from logging_config import logger
-from snowpipe_loader import SnowpipeLoader
+from snowflake_loader import SnowpipeLoader, SnowflakeDfLoader
 from config import (
     user,
     password,
@@ -48,46 +46,51 @@ def generate_data(number_of_rows: int) -> pd.DataFrame:
     logger.info(f"Generated {number_of_rows} rows of fake data")
     return df
 
-
-def upload_to_snowflake(
-    df: pd.DataFrame,
-    user: str,
-    password: str,
-    account: str,
-    warehouse: str,
-    database: str,
-    schema: str,
-    role: str,
-) -> None:
-    """
-    Uploads the given DataFrame to Snowflake.
-    This is an extremely simple way to load data so Snowflake, but it can be expensive if you run it frequently.
-    The copy command utilizes a virtual warehouse, so you pay for a full minute of usage.
-
-    Args:
-        df (pandas.DataFrame): The DataFrame to be uploaded.
-
-    Returns:
-        None
-    """
-    # Load the environment variables from dotenv file if it exists
-    logger.info("Uploading data to Snowflake")
-
-    conn = connect(
+def data_to_snowflake(df,
+        database=database,
+        schema=schema,
         user=user,
         password=password,
         account=account,
-        warehouse=warehouse,
-        database=database,
-        schema=schema,
         role=role,
-    )
-    # Use the write_pandas method for efficient data upload
-    write_pandas(
-        conn, df, "fake_sales_orders", auto_create_table=True, quote_identifiers=False
-    )
-    conn.close()
-    logger.info("Data uploaded to Snowflake")
+        warehouse=warehouse,
+        table="fake_sales_orders",):
+    '''
+    try using the SnowpipeLoader. (No warehouse required)
+    If it fails, the most likely reason is the talbe doesn't exist.
+    Upon failure, use the SnowflakeDfLoader instead (uses a warehouse)
+    Note: we do not check if the table exists because the whole point is to not use a warehouse
+    TODO: Instead of this cheezy try except, use "show tables" and decide based on that. 
+    '''
+    try:
+        loader = SnowpipeLoader(
+            df,
+            database=database,
+            schema=schema,
+            user=user,
+            password=password,
+            account=account,
+            role=role,
+            table=table,
+        )
+        loader.load_data()
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        try:
+            loader = SnowflakeDfLoader(
+                database=database,
+                schema=schema,
+                user=user,
+                password=password,
+                account=account,
+                role=role,
+                table=table,
+                warehouse=warehouse,
+                df=df,
+            )
+            loader.upload_to_snowflake()
+        except Exception as e:
+            logger.error(f"Error: {e}")
 
 
 def main(number_of_rows: int = 1000) -> None:
@@ -99,18 +102,21 @@ def main(number_of_rows: int = 1000) -> None:
     """
     df = generate_data(number_of_rows)
     # upload_to_snowflake(df)
-    loader = SnowpipeLoader(
-        df,
-        database=database,
-        schema=schema,
-        user=user,
-        password=password,
-        account=account,
-        role=role,
-        table="fake_sales_orders",
-    )
-    loader.load_data()
-    logger.info("Process complete")
+    
+    try:
+        data_to_snowflake(df,
+                        database=database,
+                        schema=schema,
+                        user=user,
+                        password=password,
+                        account=account,
+                        role=role,
+                        warehouse=warehouse,
+                        table="fake_sales_orders",)
+        logger.info("Process complete")
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        logger.error("Process failed")
 
 
 if __name__ == "__main__":
