@@ -26,4 +26,4 @@ jobs:
       
     - name: Invoke Lambda
       run: |
-        aws lambda invoke --function-name faker-function --payload file://payload.json /dev/null
+        aws lambda invoke --function-name faker-function --payload fileb://payload.json /dev/null
