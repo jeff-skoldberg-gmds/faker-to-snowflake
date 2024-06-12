@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - staging
+  pull_request:
+    branches:
       - main
+    types:
+      - closed
 
 jobs:
   deploy:
