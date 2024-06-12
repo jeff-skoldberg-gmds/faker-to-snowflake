@@ -18,7 +18,7 @@ COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
 # Copy the specific project directory
-COPY src/faker_to_snowflake/ ${LAMBDA_TASK_ROOT}
+COPY . ${LAMBDA_TASK_ROOT}
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
