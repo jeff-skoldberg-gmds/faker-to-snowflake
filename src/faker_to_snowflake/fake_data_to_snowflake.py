@@ -88,7 +88,7 @@ def data_to_snowflake(
         account=account,
         role=role,
         table=table,
-        rsa_key=rsa_key
+        rsa_key=rsa_key,
     )
     try:
         loader.load_using_snowpipe()
@@ -109,7 +109,7 @@ def main(
     account: str,
     role: str,
     warehouse: str,
-    rsa_key: str
+    rsa_key: str,
 ) -> None:
     """
     Entry point of the script.
@@ -131,7 +131,7 @@ def main(
             role=role,
             warehouse=warehouse,
             table="fake_sales_orders",
-            rsa_key=rsa_key
+            rsa_key=rsa_key,
         )
         logger.info("Process complete")
     except Exception as e:
@@ -151,14 +151,13 @@ if __name__ == "__main__":
         schema,
         role,
         region,
-        secret_name
-
+        secret_name,
     )
     from SecretsManager import SecretsManager
 
     secrets_manager = SecretsManager(secret_name=secret_name, region=region)
     secret = secrets_manager.get_secret()
-    rsa_key = os.getenv('rsa_key')
+    rsa_key = os.getenv("rsa_key")
 
     main(
         number_of_rows=1000,
@@ -169,5 +168,5 @@ if __name__ == "__main__":
         database=database,
         schema=schema,
         role=role,
-        rsa_key=rsa_key
+        rsa_key=rsa_key,
     )

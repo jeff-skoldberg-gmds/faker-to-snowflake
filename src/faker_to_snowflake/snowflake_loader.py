@@ -35,7 +35,6 @@ class SnowflakeDataLoader:
         self.table = table
         self.rsa_key = rsa_key
         self.jwt_token = self.generate_jwt_token()
-        
 
     def generate_jwt_token(self):
         logger.info("Generating JWT token")
@@ -119,17 +118,16 @@ class SnowflakeDataLoader:
             conn.close()
 
     def load_using_snowpipe(self):
-        '''
+        """
         Step 1: clean up old files in the stage
           unfortunately, we cannot do this as the last step because it is possible to delete a file before snowpipe processes it
           I do not want to add "wait" or checking logic.
         Step 2: upload the dataframe to the stage
         Step 3: trigger the snowpipe
-        '''
+        """
         self.clean_table_stage()
         file_name = self.upload_dataframe_to_stage()
         self.trigger_snowpipe(file_name)
-        
 
     def load_using_write_pandas(self, warehouse: str) -> None:
         """
@@ -159,7 +157,11 @@ class SnowflakeDataLoader:
         )
         # Use the write_pandas method for efficient data upload
         write_pandas(
-            conn, self.df, "fake_sales_orders", auto_create_table=True, quote_identifiers=False
+            conn,
+            self.df,
+            "fake_sales_orders",
+            auto_create_table=True,
+            quote_identifiers=False,
         )
         conn.close()
-        logger.info("write_pandas complete.")        
+        logger.info("write_pandas complete.")

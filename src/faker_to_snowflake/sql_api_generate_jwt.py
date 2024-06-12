@@ -104,9 +104,10 @@ class JWTGenerator(object):
         except TypeError:
             # If that fails, provide the passphrase returned from get_private_key_passphrase().
             self.private_key = load_pem_private_key(
-                private_key.encode(), get_private_key_passphrase().encode(), default_backend()
+                private_key.encode(),
+                get_private_key_passphrase().encode(),
+                default_backend(),
             )
-
 
     def prepare_account_name_for_jwt(self, raw_account: Text) -> Text:
         """

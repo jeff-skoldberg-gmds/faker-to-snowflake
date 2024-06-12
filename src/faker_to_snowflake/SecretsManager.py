@@ -41,7 +41,7 @@ class SecretsManager:
             response: The response from creating or updating the secret.
         """
         self.set_env_vars()
-        with open(pathlib.Path.cwd() / 'rsa_key.p8', 'r') as file:
+        with open(pathlib.Path.cwd() / "rsa_key.p8", "r") as file:
             rsa_key = file.read()
         logger.info(f"Creating or updating secret: {self.secret_name}")
         secret_data = {
@@ -52,7 +52,7 @@ class SecretsManager:
             "SNOWFLAKE_DATABASE": os.getenv("SNOWFLAKE_DATABASE"),
             "SNOWFLAKE_SCHEMA": os.getenv("SNOWFLAKE_SCHEMA"),
             "SNOWFLAKE_ROLE": os.getenv("SNOWFLAKE_ROLE"),
-            'rsa_key': rsa_key
+            "rsa_key": rsa_key,
         }
         # Convert dictionary to JSON string
         secret_string = json.dumps(secret_data)
@@ -97,5 +97,6 @@ class SecretsManager:
 if __name__ == "__main__":
     # This should be run directly to initialize the project / set the secrets
     from config import secret_name, region
+
     secret_manager = SecretsManager(secret_name=secret_name, region=region)
     secret_manager.create_or_update_secret()
