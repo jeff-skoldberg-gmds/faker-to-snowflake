@@ -23,3 +23,7 @@ jobs:
     - name: Deploy to Lambda
       run: |
         aws lambda update-function-code --function-name faker-function --image-uri ${{ secrets.ECR_IMAGE_URI }}
+
+    - name: Invoke Lambda
+      run: |
+        aws lambda invoke --function-name faker-function --payload '{"rows": 100}' /dev/null
