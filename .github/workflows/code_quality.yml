@@ -18,6 +18,6 @@ jobs:
       run: |
         pip install black
 
-    - name: Run Black
+    - name: Check code format vs Black
       run: |
         black --check .
