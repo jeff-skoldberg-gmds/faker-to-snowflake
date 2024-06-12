@@ -20,11 +20,10 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Deploy to Lambda
+    - name: Create Payload File
       run: |
-        aws lambda update-function-code --function-name faker-function --image-uri ${{ secrets.ECR_IMAGE_URI }}
-
+        echo '{"rows": 100}' > payload.json
+      
     - name: Invoke Lambda
       run: |
-        echo '{ "rows": 100 }' | base64 > payload.txt
-        aws lambda invoke --function-name faker-function --payload fileb://payload.txt /dev/null
+        aws lambda invoke --function-name faker-function --payload file://payload.json /dev/null
