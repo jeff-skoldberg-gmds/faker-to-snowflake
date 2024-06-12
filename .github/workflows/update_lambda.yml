@@ -26,4 +26,5 @@ jobs:
 
     - name: Invoke Lambda
       run: |
-        aws lambda invoke --function-name faker-function --payload '{ "rows": 100 }' /dev/null
+        echo '{ "rows": 100 }' | base64 > payload.txt
+        aws lambda invoke --function-name faker-function --payload fileb://payload.txt /dev/null
