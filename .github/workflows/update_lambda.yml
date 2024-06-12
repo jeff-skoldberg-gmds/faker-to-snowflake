@@ -26,4 +26,4 @@ jobs:
 
     - name: Invoke Lambda
       run: |
-        aws lambda invoke --function-name faker-function --payload '{"rows": 100}' /dev/null
+        aws lambda invoke --function-name faker-function --payload '{ "rows": 100 }' /dev/null
