@@ -1,0 +1,40 @@
+roles:
+  - name: DEMO_ROLE
+
+role_grants:
+  - role: DEMO_ROLE
+    to_role: SYSADMIN
+  - role: DEMO_ROLE
+    to_user: ETL
+
+databases:
+  - name: TEST_TITAN
+    transient: false
+    data_retention_time_in_days: 30
+    comment: Test db for the project
+
+schemas:
+  - name: TEST_SCHEMA
+    database: TEST_TITAN
+    owner: DEMO_ROLE
+
+
+warehouses:
+  - name: FAKER_LOADER
+    warehouse_size: XSMALL
+    auto_suspend: 60
+    auto_resume: true
+    # min_cluster_count: 1
+    # max_cluster_count: 1
+    comment: Warehouse for the faker project
+
+grants:
+  - to_role: DEMO_ROLE
+    priv: usage
+    on_warehouse: FAKER_LOADER
+  - to_role: DEMO_ROLE
+    priv: operate
+    on_warehouse: FAKER_LOADER    
+  - to_role: DEMO_ROLE
+    priv: usage
+    on_database: TEST_TITAN

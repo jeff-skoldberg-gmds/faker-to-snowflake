@@ -2,6 +2,8 @@
 src/aws_formation/ignore
 response.json
 rsa_key.*
+plan_output.json
+blog_notes/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
