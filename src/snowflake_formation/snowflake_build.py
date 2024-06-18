@@ -1,10 +1,21 @@
-
 import os
 import snowflake.connector
 from pprint import pprint
 
 from titan import Blueprint
-from titan.resources import Database, Warehouse, Role, RoleGrant, Pipe, Table, Column, Schema, Grant, FutureGrant, User
+from titan.resources import (
+    Database,
+    Warehouse,
+    Role,
+    RoleGrant,
+    Pipe,
+    Table,
+    Column,
+    Schema,
+    Grant,
+    FutureGrant,
+    User,
+)
 from titan.blueprint import print_plan
 
 connection_params = {
@@ -22,69 +33,75 @@ def dbt():
     sysad_grant = RoleGrant(role=role, to_role="SYSADMIN")
     user_grant = RoleGrant(role=role, to_user="ETL")
 
-    test_db = Database(name="TEST_TITAN",
-                      transient=False,
-                      data_retention_time_in_days=30,
-                      comment="Test Titan"
-                      )
-    
-    schema = Schema(name="TEST_SCHEMA",
-                    database=test_db,
-                    transient=False,
-                    comment="Test Titan Schema",
-                    owner=role)
+    test_db = Database(
+        name="TEST_TITAN",
+        transient=False,
+        data_retention_time_in_days=30,
+        comment="Test Titan",
+    )
 
-    warehouse = Warehouse(name="FAKER_LOADER",
-                          auto_suspend=60)
-    
+    schema = Schema(
+        name="TEST_SCHEMA",
+        database=test_db,
+        transient=False,
+        comment="Test Titan Schema",
+        owner=role,
+    )
 
-    
-    future_schema_grant = FutureGrant(priv="usage", on_future_schemas_in=test_db, to=role)
+    warehouse = Warehouse(name="FAKER_LOADER", auto_suspend=60)
+
+    future_schema_grant = FutureGrant(
+        priv="usage", on_future_schemas_in=test_db, to=role
+    )
     post_grant = [future_schema_grant]
 
-
     grants = [
-    Grant(priv="usage", to=role, on=warehouse),
-    Grant(priv="operate", to=role, on=warehouse),
-    Grant(priv="usage", to=role, on=test_db),
-    # future_schema_grant,
-    # x
-    # Grant(priv="usage", to=role, on=schema)
-]
-    
-    sales_table = Table(name="faker_data",
-                        # schema=schema,
-                        columns=[
-                            Column(name="NAME", data_type="VARCHAR(16777216)"),
-                            Column(name="EMAIL", data_type="VARCHAR(16777216)"),
-                            Column(name="ADDRESS", data_type="VARCHAR(16777216)"),
-                            Column(name="ORDERED_AT_UTC", data_type="NUMBER(38,0)"),
-                            Column(name="EXTRACTED_AT_UTC", data_type="NUMBER(38,0)"),
-                            Column(name="SALES_ORDER_ID", data_type="VARCHAR(16777216)"),
-                        ],
-                        comment="Test Table")
-    
+        Grant(priv="usage", to=role, on=warehouse),
+        Grant(priv="operate", to=role, on=warehouse),
+        Grant(priv="usage", to=role, on=test_db),
+        # future_schema_grant,
+        # x
+        # Grant(priv="usage", to=role, on=schema)
+    ]
+
+    sales_table = Table(
+        name="faker_data",
+        # schema=schema,
+        columns=[
+            Column(name="NAME", data_type="VARCHAR(16777216)"),
+            Column(name="EMAIL", data_type="VARCHAR(16777216)"),
+            Column(name="ADDRESS", data_type="VARCHAR(16777216)"),
+            Column(name="ORDERED_AT_UTC", data_type="NUMBER(38,0)"),
+            Column(name="EXTRACTED_AT_UTC", data_type="NUMBER(38,0)"),
+            Column(name="SALES_ORDER_ID", data_type="VARCHAR(16777216)"),
+        ],
+        comment="Test Table",
+    )
+
     copy_statement = """
     COPY INTO fake_sales_orders
     FROM
     '@%fake_sales_orders' FILE_FORMAT = (TYPE = 'PARQUET');
     """
-    pipe = Pipe(name="TEST_TITAN_PIPE",
-                as_=copy_statement,
-                comment="Pipe for ingesting PARQUET data",
-                # schema=schema
+    pipe = Pipe(
+        name="TEST_TITAN_PIPE",
+        as_=copy_statement,
+        comment="Pipe for ingesting PARQUET data",
+        # schema=schema
     )
 
-    return (role,
-            sysad_grant,
-            user_grant,
-            test_db,
-            # *pre_grant,
-            schema,
-            # sales_table,
-            # pipe,
-            *grants,
-            )
+    return (
+        role,
+        sysad_grant,
+        user_grant,
+        test_db,
+        # *pre_grant,
+        schema,
+        # sales_table,
+        # pipe,
+        *grants,
+    )
+
 
 if __name__ == "__main__":
     bp = Blueprint(name="dbt-quickstart")
@@ -92,7 +109,7 @@ if __name__ == "__main__":
     session = snowflake.connector.connect(**connection_params)
     plan = bp.plan(session)
     print_plan(plan)
-    
+
     # Update Snowflake to match blueprint
     bp.apply(session, plan)
     print("Done")
