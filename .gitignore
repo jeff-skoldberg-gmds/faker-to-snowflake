@@ -4,6 +4,7 @@ response.json
 rsa_key.*
 plan_output.json
 blog_notes/
+.env*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
